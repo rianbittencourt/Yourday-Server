@@ -1,25 +1,23 @@
 const { Pool } = require("pg");
 const dotenv = require("dotenv");
 dotenv.config();
-
+const { getUser } = require("../repository/userReposityory");
 const pool = new Pool({
   connectionString: process.env.DB_CONNECTION_STRING,
 });
 
 async function verifyUser(req, res, googleID) {
   try {
-    // Verificar se o googleID já está presente no banco de dados
-    const existingUser = await pool.query(
-      "SELECT * FROM users WHERE googleID = $1",
-      [googleID]
-    );
+    // Verificar se o usuário já existe
+    const userExists = await getUser(googleID);
 
-    if (existingUser.rows.length > 0) {
-      // Usuário já existe, retornar tabela inteira do usuário
-      return res.status(200).json({ message:"Usuário existente", user: existingUser.rows[0] });
+    if (userExists) {
+      // Usuário já existe, retornar tabela do usuário
+      return res
+        .status(400)
+        .json({ error: "Usuário já existe", user: userExists });
     } else {
-      // Se não existe, retorna um array vazio
-      return res.status(200).json({message:"Usuário não existe", user: [] });
+      return res.status(200).json({ message: "Usuário não Existe", user: [] });
     }
   } catch (error) {
     console.error("Erro ao verificar e adicionar usuário:", error);
