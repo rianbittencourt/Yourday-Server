@@ -26,4 +26,42 @@ async function getUser(googleID) {
   }
 }
 
-module.exports = { getUser };
+async function createUser(
+  firstName,
+  lastName,
+  gender,
+  nationality,
+  googleID,
+  birthday
+) {
+
+
+  const newUserQuery = {
+    text: "INSERT INTO users (firstName, lastName, gender, nationality, googleID, isPremium, birthday, createdAt, amountPost, amountReading) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
+    values: [
+      firstName,
+      lastName,
+      gender,
+      nationality,
+      googleID,
+      false,
+      birthday,
+      new Date(),
+      0,
+      0,
+    ],
+  };
+
+  try {
+    const newUserResult = await pool.query(
+      newUserQuery.text,
+      newUserQuery.values
+    );
+    const newUser = newUserResult.rows[0];
+    return newUser;
+  } catch (error) {
+    console.error("Erro ao criar usuário:", error);
+    throw error;
+  }
+}
+module.exports = { getUser, createUser };

@@ -6,9 +6,9 @@ const pool = new Pool({
   connectionString: process.env.DB_CONNECTION_STRING,
 });
 
-const { getUser } = require("../repository/userReposityory");
+const { getUser, createUser } = require("../repository/userReposityory");
 
-async function createUser(
+async function createNewUser(
   req,
   res,
   googleID,
@@ -29,24 +29,15 @@ async function createUser(
         .json({ error: "Usuário já existe", user: userExists });
     } else {
       // Inserir novo usuário no banco de dados
-      const newUserQuery = {
-        text: "INSERT INTO users (firstName, lastName, gender, nationality, googleID, isPremium, birthday, createdAt, amountPost, amountReading) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
-        values: [
-          firstName,
-          lastName,
-          gender,
-          nationality,
-          googleID,
-          false,
-          birthday,
-          new Date(),
-          0,
-          0,
-        ],
-      };
 
-      const newUserResult = await pool.query(newUserQuery);
-      const newUser = newUserResult.rows[0];
+      const newUser = await createUser(
+        firstName,
+        lastName,
+        gender,
+        nationality,
+        googleID,
+        birthday
+      );
 
       // Retornar mensagem de sucesso com as informações do novo usuário
       return res
@@ -59,4 +50,4 @@ async function createUser(
   }
 }
 
-module.exports = { createUser };
+module.exports = { createNewUser };
